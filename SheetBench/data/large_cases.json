@@ -1,0 +1,208 @@
+[
+  {
+    "File": "sheetbench/large_cases/large_cases_xlsx/mmqa1159.xlsx",
+    "Tags": ["large table, multitable"],
+    "QA": [
+      "Who are the top 3 players in terms of overall rating?",
+      "Lionel Messi, Cristiano Ronaldo, Luis Suarez"
+    ],
+    "Source": "MMQA",
+    "ID": "1",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/large_cases/large_cases_xlsx/mmqa1159.xlsx",
+    "Tags": ["large table, multitable"],
+    "QA": [
+      "Who is the tallest player, and what is their height?",
+      "Kristof van Hout, 208.28"
+    ],
+    "Source": "MMQA",
+    "ID": "2",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/large_cases/large_cases_xlsx/mmqa1159.xlsx",
+    "Tags": ["large table, multitable"],
+    "QA": [
+      "Who is the oldest among the players?",
+      "Alberto Fontana"
+    ],
+    "Source": "MMQA",
+    "ID": "3",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/large_cases/large_cases_xlsx/mmqa1159.xlsx",
+    "Tags": ["large table, multitable"],
+    "QA": [
+      "In terms of preferred foot, are there more players who prefer right foot over left foot, or vice versa?",
+      "There are more players who prefer right foot over left foot"
+    ],
+    "Source": "MMQA",
+    "ID": "4",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/large_cases/large_cases_xlsx/mmqa0326.xlsx",
+    "Tags": ["large table, multitable"],
+    "QA": [
+      "Find the average height of the players who belong to the college called 'Yale University', round to two decimal places.",
+      "59.14"
+    ],
+    "Source": "MMQA",
+    "ID": "7",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/large_cases/large_cases_xlsx/solar-power-generation-data.xlsx",
+    "Tags": ["large table, multitable"],
+    "QA": [
+      "What is the correlation coefficient between irradiation and daily yield of the solar power plant for Plant 1? Please ignore any data points where the irradiation or daily yield values are zero or missing. Round to 3 decimal places",
+      "0.654"
+    ],
+    "Source": "TidyTuesday",
+    "ID": "8",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/large_cases/large_cases_xlsx/solar-power-generation-data.xlsx",
+    "Tags": ["large table, multitable"],
+    "QA": [
+      "How many inverters show significant deviation in power output compared to others in similar conditions, where a significant deviation is defined as a deviation greater than two standard deviations from the average power output?",
+      "44"
+    ],
+    "Source": "TidyTuesday",
+    "ID": "9",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/large_cases/large_cases_xlsx/solar-power-generation-data.xlsx",
+    "Tags": ["large table, multitable"],
+    "QA": [
+      "Is the average daily yield of 'V94E5Ben1TlhnDV' below the overall plant average daily yield?",
+      "Yes"
+    ],
+    "Source": "TidyTuesday",
+    "ID": "10",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/large_cases/large_cases_xlsx/solar-power-generation-data.xlsx",
+    "Tags": ["large table, multitable"],
+    "QA": [
+      "What is the difference between the overall plant average daily yield and the average yield of equipment 'LlT2YUhhzqhg5Sw'? Round to three decimal places.",
+      "114.491"
+    ],
+    "Source": "TidyTuesday",
+    "ID": "11",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/large_cases/large_cases_xlsx/ecommerce-fashion-dataset.xlsx",
+    "Tags": ["large table"],
+    "QA": [
+      "What is the total occurrence of Small size in all categories? Do not consider numerical based sizes.",
+      "12646"
+    ],
+    "Source": "TidyTuesday",
+    "ID": "13",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/large_cases/large_cases_xlsx/ecommerce-fashion-dataset.xlsx",
+    "Tags": ["large table"],
+    "QA": [
+      "How many unique products are there in the Westernwear-Women category? Ensure to exclude entries with missing values in product details and category. Clean the data by removing unwanted characters from the price, and drop any rows with non-numeric prices. Additionally, trim any leading or trailing spaces in the product details to ensure accurate counting.",
+      "7194"
+    ],
+    "Source": "TidyTuesday",
+    "ID": "14",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/large_cases/large_cases_xlsx/ecommerce-fashion-dataset.xlsx",
+    "Tags": ["large table"],
+    "QA": [
+      "What is the total occurrence of X-Large size in Lingerie&Nightwear-Women category? Ignore any numerical based sizes.",
+      "1182"
+    ],
+    "Source": "TidyTuesday",
+    "ID": "15",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/large_cases/large_cases_xlsx/condabench_2020-05-26.xlsx",
+    "Tags": ["large table, multiple tables"],
+    "QA": [
+      "How many Margarita recipes are in the dataset? When counting the recipes, make sure to handle missing values by excluding entries with missing values in the name. Additionally, clean the ingredient names by stripping any leading or trailing spaces and converting them to lowercase to ensure consistency.",
+      "65"
+    ],
+    "Source": "TidyTuesday",
+    "ID": "16",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/large_cases/large_cases_xlsx/condabench_2020-05-26.xlsx",
+    "Tags": ["large table, multiple tables"],
+    "QA": [
+      "What percentage of Margarita recipes include tequila? Ensure to clean and handle any missing ingredients and count ingredients in a case-insensitive manner.",
+      "18.46%"
+    ],
+    "Source": "TidyTuesday",
+    "ID": "17",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/large_cases/large_cases_xlsx/condabench_2020-05-26.xlsx",
+    "Tags": ["large table, multiple tables"],
+    "QA": [
+      "Which ingredient is most commonly used in the margarita recipes in the dataset? Consider ingredients listed across all possible ingredient columns and combine them into a single list. Filter recipes by names containing 'margarita' across all datasets.",
+      "Tequila"
+    ],
+    "Source": "TidyTuesday",
+    "ID": "18",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/large_cases/large_cases_xlsx/condabench_2021-05-04.xlsx",
+    "Tags": ["large table"],
+    "QA": [
+      "What is the most recent installation year of water points in the dataset, considering only valid years up to the current year and excluding any unrealistic future years or non-positive values?",
+      "2021"
+    ],
+    "Source": "TidyTuesday",
+    "ID": "19",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/large_cases/large_cases_xlsx/condabench_2021-05-04.xlsx",
+    "Tags": ["large table"],
+    "QA": [
+      "How many water points are damaged and require rehabilitation, including those that are either non-functional or have any form of damage indicated in their status?",
+      "35423"
+    ],
+    "Source": "TidyTuesday",
+    "ID": "20",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/large_cases/large_cases_xlsx/DABstep_5tables.xlsx",
+    "tags": ["DKI_DABstep", "easy"],
+    "QA": ["Which issuing country has the highest number of transactions? Answer must be just the country code. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.", 
+        "NL"],
+    "Source": "DABstep",
+	  "ID": "21",
+    "Type": "QA"
+    },
+    {
+    "File": "sheetbench/large_cases/large_cases_xlsx/DABstep_5tables.xlsx",
+    "tags": ["DKI_DABstep", "hard"],
+    "workbook": "DKI/DABstep/DABstep_5tables.xlsx",
+    "QA": ["What is the fee ID or IDs that apply to account_type = R and aci = B? Answer must be a list of values in comma separated list, eg: A, B, C. If the answer is an empty list, reply with an empty string. If a question does not have a relevant or applicable answer for the task, please respond with 'Not Applicable'.", 
+        "34, 39, 49, 62, 68, 82, 154, 220, 231, 236, 265, 276, 278, 286, 329, 345, 352, 355, 360, 368, 369, 390, 393, 404, 419, 512, 539, 556, 564, 583, 587, 590, 638, 645, 661, 711, 717, 731, 757, 779, 793, 828, 837, 871, 915, 938, 939, 964, 986, 998"],
+    "Source": "DABstep",
+	  "ID": "22",
+    "Type": "QA"
+    }
+]

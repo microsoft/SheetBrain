@@ -1,0 +1,232 @@
+[
+  {
+    "File": "sheetbench/complex table cases/mimo_hitab_xlsx/PileSingleCalculation.xlsx",
+    "Tags": ["complex table"],
+    "QA": [
+      "What is the unit index (Yuan/m2) of the 9-Story Slab Residential? ",
+      "74.434541420118 Yuan/m²"
+    ],
+    "Source": "MiMoTable",
+    "ID": "33",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/complex table cases/mimo_hitab_xlsx/CostExpenseAnalysisTable1(2).xlsx",
+    "Tags": ["complex table"],
+    "QA": [
+      "What is the budget for direct materials in July?",
+      "1500"
+    ],
+    "Source": "MiMoTable",
+    "ID": "129",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/complex table cases/mimo_hitab_xlsx/8PumpMachinery.xlsx",
+    "Tags": ["complex table"],
+    "QA": [
+      "What is the total of the shift basis price and depreciation cost for the Electric Single-stage Centrifugal Clean Water Pump with serial number 8-5?",
+      "508.71 yuan."
+    ],
+    "Source": "MiMoTable",
+    "ID": "62",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/complex table cases/mimo_hitab_xlsx/PanzhihuaMaintenanceWorkArea.xlsx",
+    "Tags": ["complex table"],
+    "QA": [
+      "What is the average number of sub-division engineering items under each division engineering item? ",
+      "3"
+    ],
+    "Source": "MiMoTable",
+    "ID": "98",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/complex table cases/mimo_hitab_xlsx/ProductionandManufacturingForm(648).xlsx",
+    "Tags": ["complex table"],
+    "QA": [
+      "According to the table, what management measures are proposed to reduce the risks in the product trial production process? ",
+      "1. Repeatedly discuss market demand when initiating new product development.\n2. Choose materials that can be reused as much as possible when developing products.\n3. Increase resource investment in design and development to shorten the product development cycle as much as possible.\n\nThese measures aim to ensure that the design and trial production of products can meet market and customer needs, while reducing risks through effective monitoring and measurement, contract review, and other means. Related documents include \"Product and Service Requirements Control Procedure\" and \"Design and Development Control Procedure.\""
+    ],
+    "Source": "MiMoTable",
+    "ID": "43",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/complex table cases/mimo_hitab_xlsx/Sheet14.xlsx",
+    "Tags": ["complex table"],
+    "QA": [
+      "How many employees does XX company have? ",
+      "51"
+    ],
+    "Source": "MiMoTable",
+    "ID": "109",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/complex table cases/mimo_hitab_xlsx/GoodsLogisticsManagement(30).xlsx",
+    "Tags": ["complex table"],
+    "QA": [
+      "As of April 20, 2020, what is the total inventory quantity of  Gree Air Conditioners in Warehouse B? ",
+      "23. "
+    ],
+    "Source": "MiMoTable",
+    "ID": "106",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/complex table cases/mimo_hitab_xlsx/CompanyProfitabilityAnalysisTable1.xlsx",
+    "Tags": ["complex table"],
+    "QA": [
+      "In 2020, using the compounded-factor method, which quarter’s profit MoM growth rate increased, and provide the specific quarterly MoM growth rate values?",
+      " No quarter increased; Q1 −22.7 %, Q2 −67.7 %, Q3 −143.7 %, Q4 −1001.2 %."
+    ],
+    "Source": "MiMoTable",
+    "ID": "104",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/complex table cases/mimo_hitab_xlsx/1216(2).xlsx",
+    "Tags": ["complex table"],
+    "QA": [
+      "What is the quantity of \"Floor Tiles (1000×1000)\" on the first floor?",
+      "72.4"
+    ],
+    "Source": "MiMoTable",
+    "ID": "91",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/complex table cases/mimo_hitab_xlsx/417_totto48261-1.xlsx",
+    "Tags": ["complex table"],
+    "QA": [
+      "how many kilograms did josef strassberger press in the men's +82.5 kg weightlifting category at the 1932 summer olympics?",
+      "125.0"
+    ],
+    "Source": "HiTab",
+    "ID": "1106",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/complex table cases/mimo_hitab_xlsx/PanzhihuaMaintenanceWorkArea.xlsx",
+    "Tags": ["complex table"],
+    "QA": [
+      "What is the sub-item engineering with serial number 2 under the division engineering items handled by Panzhihua Highway Construction Co., Ltd.? ",
+      "Earthwork Backfill, Rebar, Tile Surface Layer (Brick Surface Layer), Tile Surface Layer (Granite Surface Layer), Metal Door and Window Installation, Membrane Waterproof Layer, Indoor Fire Hydrant System Installation, Rainwater Pipes and Fittings Installation, Sanitary Ware Water Supply Fittings Installation, Electrical Conduit, Cable Conduit and Trunking Installation, Lightning Down Conductor and Substation Grounding Main Line Installation"
+    ],
+    "Source": "MiMoTable",
+    "ID": "101",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/complex table cases/mimo_hitab_xlsx/1706967909341.xlsx",
+    "Tags": ["complex table"],
+    "QA": [
+      "What is the \"Direct Cost (Yuan)\" for the \"Excavation\" project in the table?",
+      "46705"
+    ],
+    "Source": "MiMoTable",
+    "ID": "126",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/complex table cases/mimo_hitab_xlsx/WorkplaceGeneral(41).xlsx",
+    "Tags": ["complex table"],
+    "QA": [
+      "What is the entertainment expenditure in row with serial number 18?",
+      "-5700"
+    ],
+    "Source": "MiMoTable",
+    "ID": "209",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/complex table cases/mimo_hitab_xlsx/CoalMineProductionDailyReport.xlsx",
+    "Tags": ["complex table, multiple sheets"],
+    "QA": [
+      "What is the monthly plan for the 10403 Workface? ",
+      "12000"
+    ],
+    "Source": "MiMoTable",
+    "ID": "443",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/complex table cases/mimo_hitab_xlsx/AnnualSalespersonPerformanceCalculationTable1.xlsx",
+    "Tags": ["complex table, multiple tables"],
+    "QA": [
+      "What is the average value of all sales amounts in the table?",
+      "10326"
+    ],
+    "Source": "MiMoTable",
+    "ID": "527",
+    "Type": "QA"
+  },
+    {
+    "File": "sheetbench/complex table cases/realhit_xlsx/business-table09.xlsx",
+    "Tags": ["hierarchy table"],
+    "QA": [
+      "What is the total landings (tonnes live weight) for Scotland in 2023, and how does it compare to the total landings for England, Wales, and N.I.? ",
+      "163802, 6987, much higher"
+    ],
+    "Source": "RealHiTBench",
+    "ID": "2292",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/complex table cases/realhit_xlsx/business-table16.xlsx",
+    "Tags": ["hierarchy table"],
+    "QA": [
+      "How many years between 2008/09 and 2012/13 had fundraising income exceeding £10,000,000 for the British Museum?",
+      "4"
+    ],
+    "Source": "RealHiTBench",
+    "ID": "118",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/complex table cases/realhit_xlsx/economy-table27.xlsx",
+    "Tags": ["hierarchy table"],
+    "QA": [
+      "How many quarters had a GDP greater than 95,000 (in millions of Euros) during the period 2023-Q3 to 2024-Q3?",
+      "2"
+    ],
+    "Source": "RealHiTBench",
+    "ID": "282",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/complex table cases/realhit_xlsx/economy-table36.xlsx",
+    "Tags": ["hierarchy table"],
+    "QA": [
+      "What is the difference in \"Mark Up Price\" between \"Painted\" and \"Galvalume\" materials for the product \"17.25 Cap\"?",
+      "4.05"
+    ],
+    "Source": "RealHiTBench",
+    "ID": "703",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/complex table cases/realhit_xlsx/labor-table39.xlsx",
+    "Tags": ["hierarchy table"],
+    "QA": [
+      "How many users handled more than 11 chats serviced, and what is the total number of chats they serviced?",
+      "2, 24"
+    ],
+    "Source": "RealHiTBench",
+    "ID": "1135",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/complex table cases/realhit_xlsx/society-table28.xlsx",
+    "QA": [
+      "What is the total number of lives saved according to the mitigation strategies?",
+      "3270"
+    ],
+    "Source": "RealHiTBench",
+    "ID": "515",
+    "Type": "QA"
+  }
+]

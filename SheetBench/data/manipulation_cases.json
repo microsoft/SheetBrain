@@ -1,0 +1,66 @@
+[
+    {
+        "File": "sheetbench/manipulation cases/case3/nsf22319-tab005-001_input.xlsx",
+        "Tags":["hierarchy table"],
+        "QA": ["Set the background color of the header section to yellow.","sheetbench/manipulation cases/case3/nsf22319-tab005-001_answer.xlsx"],
+        "Source": "NSF",
+        "ID": 0,
+        "Type": "manipulation"
+    },
+    {
+        "File": "sheetbench/manipulation cases/case5_1/1_15825_input.xlsx",
+        "Tags":["large table","multiple"],
+        "QA": ["Set the background color of the header section to yellow.","sheetbench/manipulation cases/case5_1/1_15825_answer.xlsx"],
+        "Source": "spreadsheetbench",
+        "ID": 1,
+        "Type": "manipulation"
+    },
+    {
+        "File": "sheetbench/manipulation cases/case1/1_19-16_input.xlsx",
+        "Tags":["large table"],
+        "QA": ["Retain only the rows containing 'TSCO REQ' in column H.","sheetbench/manipulation cases/case1/1_19-16_answer.xlsx"],
+        "Source": "spreadsheetbench",
+        "ID": 2,
+        "Type": "manipulation"
+    },
+    {
+        "File": "sheetbench/manipulation cases/case17/IncomeStatement2.xlsx",
+        "Tags":["none-table"],
+        "QA": ["Calculate the gross profits for all years.","sheetbench/manipulation cases/case17/IncomeStatement2_Ans.xlsx"],
+        "Source": "sheetcopilot",
+        "ID": 3,
+        "Type": "manipulation"
+    },
+    {
+        "File": "sheetbench/manipulation cases/case5_2/1_15825_input.xlsx",
+        "Tags":["large table","multiple"],
+        "QA": ["Filter records in 'Input (Full List)' table where 'TDTE' < 18  and put the results in 'Output (Filtered List)' table.","sheetbench/manipulation cases/case5_2/1_15825_answer.xlsx"],
+        "Source": "spreadsheetbench",
+        "ID": 4,
+        "Type": "manipulation"
+    },
+     {
+        "File": "sheetbench/manipulation cases/case7/Dragging.xlsx",
+        "Tags":["none-table"],
+        "QA": ["Fill out other rows in column B using the formula in B2.","sheetbench/manipulation cases/case7/Dragging_Ans.xlsx"],
+        "Source": "sheetcopilot",
+        "ID":5,
+        "Type": "manipulation"
+    },
+    {
+        "File": "sheetbench/manipulation cases/case12/BookSales.xlsx",
+        "Tags":["large table","multiple"],
+        "QA": ["Fill the 'Bookname' column based on 'Bookid'.","sheetbench/manipulation cases/case12/BookSales_Ans.xlsx"],
+        "Source": "sheetagent",
+        "ID": 6,
+        "Type": "manipulation"
+    },
+    {
+        "File": "sheetbench/manipulation cases/case8/GDPBreakdown.xlsx",
+        "Tags":["none-table"],
+        "QA": ["Create a stacked area chart in a new sheet 'GDP Growth Chart' with title 'GDP Growth' to display the GDP over time for countries listed in sheet 2.","sheetbench/manipulation cases/case8/GDPBreakdown_Ans.xlsx"],
+        "Source": "sheetcopilot",
+        "ID": 7,
+        "Type": "manipulation"
+    }
+]

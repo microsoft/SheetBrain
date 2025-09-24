@@ -1,0 +1,233 @@
+[
+    {
+        "File": "sheetbench/multi-table cases/multitab_xlsx/1000.xlsx",
+        "Tags": ["multiple", "none-table"],
+        "QA": [
+            "What is the sum of the revenues in the years where Net investment gains (losses) is positive? (in million)",
+            "50984.0"
+        ],
+        "Source": "MultiHiertt",
+        "ID": "1000",
+        "Type": "QA"
+    },
+    {
+        "File": "sheetbench/multi-table cases/multitab_xlsx/1001.xlsx",
+        "Tags": ["multiple", "none-table"],
+        "QA": [
+            "what is the percentage increase in total stock-based compensation expense from 2009 to 2010?",
+            "0.05742"
+        ],
+        "Source": "MultiHiertt",
+        "ID": "1001",
+        "Type": "QA"
+    },
+    {
+        "File": "sheetbench/multi-table cases/multitab_xlsx/1002.xlsx",
+        "Tags": ["multiple", "none-table"],
+        "QA": [
+            "what is the growth rate for backlog at year-end from 2015 to 2016?",
+            "0.08621"
+        ],
+        "Source": "MultiHiertt",
+        "ID": "1002",
+        "Type": "QA"
+    },
+    {
+        "File": "sheetbench/multi-table cases/multitab_xlsx/1003.xlsx",
+        "Tags": ["multiple", "none-table"],
+        "QA": [
+            "What was the total amount of Nonaccrual Loans in 2010 for As of September 30,? (in thousand)",
+            "147896.0"
+        ],
+        "Source": "MultiHiertt",
+        "ID": "1003",
+        "Type": "QA"
+    },
+    {
+        "File": "sheetbench/multi-table cases/multitab_xlsx/1004.xlsx",
+        "Tags": ["multiple", "none-table"],
+        "QA": [
+            "what's the total amount of Group retirement products of Net Investment Income, Cash at end of year of 2011, and Group retirement products 2005 of Total Revenues ?",
+            "6271.0"
+        ],
+        "Source": "MultiHiertt",
+        "ID": "1004",
+        "Type": "QA"
+    },
+    {
+        "File": "sheetbench/multi-table cases/multitab_xlsx/1005.xlsx",
+        "Tags": ["multiple", "none-table"],
+        "QA": [
+            "What is the ratio of Distribution fees to the total in 2012?",
+            "0.12559"
+        ],
+        "Source": "MultiHiertt",
+        "ID": "1005",
+        "Type": "QA"
+    },
+    {
+        "File": "sheetbench/multi-table cases/multitab_xlsx/1027.xlsx",
+        "Tags": ["multiple", "none-table"],
+        "QA": [
+            "What do all Revenues, net of interest expense sum up, excluding those negative ones in 2010? (in million)",
+            "86601.0"
+        ],
+        "Source": "MultiHiertt",
+        "ID": "1027",
+        "Type": "QA"
+    },
+    {
+        "File": "sheetbench/multi-table cases/multitab_xlsx/116.xlsx",
+        "Tags": ["multiple", "none-table"],
+        "QA": [
+            "What is the rate of decrease in Office Net Charge-offs from the year with the largest amount in Table 3 to the following year?",
+            "0.53846"
+        ],
+        "Source": "MultiHiertt",
+        "ID": "116",
+        "Type": "QA"
+    },
+    {
+        "File": "sheetbench/multi-table cases/multitab_xlsx/128.xlsx",
+        "Tags": ["multiple", "none-table"],
+        "QA": [
+            "What is the greatest number of Stores Opened in Fiscal 2011 for any individual segment?",
+            "86"
+        ],
+        "Source": "MultiHiertt",
+        "ID": "128",
+        "Type": "QA"
+    },
+    {
+        "File": "sheetbench/multi-table cases/multitab_xlsx/134.xlsx",
+        "Tags": ["multiple", "none-table"],
+        "QA": [
+            "What was the total amount of the Additions to customer relationship and acquisition costs in the sections where Cash Flows from Operating Activities greater than 0?",
+            "-28872.0"
+        ],
+        "Source": "MultiHiertt",
+        "ID": "134",
+        "Type": "QA"
+    },
+    {
+        "File": "sheetbench/multi-table cases/multitab_xlsx/176.xlsx",
+        "Tags": ["multiple", "none-table"],
+        "QA": [
+            "What is the sum of the Professional and consulting fees for Amount in the years where Depreciation and amortization is positive for Amount? (in thousand)",
+            "15810.0"
+        ],
+        "Source": "MultiHiertt",
+        "ID": "176",
+        "Type": "QA"
+    },
+    {
+        "File": "sheetbench/multi-table cases/multitab_xlsx/1006.xlsx",
+        "Tags": ["multiple", "none-table"],
+        "QA": [
+            "What is the total operating income for Auto & Home across both periods shown in the two tables (in millions)?",
+            "885"
+        ],
+        "Source": "MultiHiertt",
+        "ID": "1006",
+        "Type": "QA"
+    },
+      {
+    "File": "sheetbench/multi-table cases/multiple_tables_realhit_xlsx/activitytime-table01.xlsx",
+    "Tags": ["multiple"],
+    "QA": [
+      "Compare the average time spent on 'Housework' by not-employed fathers and full-time employed mothers with Own household children 6-17. Who spends more, and by how many hours? Round the answer to two decimal places.",
+      "full-time employed mothers, 0.28"
+    ],
+    "Source": "RealHiTBench",
+    "ID": "189",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/multi-table cases/multiple_tables_realhit_xlsx/activitytime-table03.xlsx",
+    "Tags": ["multiple"],
+    "QA": [
+      "Determine which activity shows the maximum difference in time spent between mothers and fathers with “Own household children under 18” in “Both spouses work full time”.",
+      "Leisure and sports"
+    ],
+    "Source": "RealHiTBench",
+    "ID": "198",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/multi-table cases/multiple_tables_realhit_xlsx/business-table03.xlsx",
+    "Tags": ["multiple"],
+    "QA": [
+      "What is the value decrease in “Total Departmental Expenditure Limit (DEL)” from Q2 2010-11 to Q2 2011-12?",
+      "303"
+    ],
+    "Source": "RealHiTBench",
+    "ID": "461",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/multi-table cases/multiple_tables_realhit_xlsx/economy-table17.xlsx",
+    "Tags": ["multiple"],
+    "QA": [
+      "Compare “Workforce Size” trends in the “Current” state over time. Does it increase, decrease, or stay the same when compared to the “Previous” state?",
+      "Decrease"
+    ],
+    "Source": "RealHiTBench",
+    "ID": "138",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/multi-table cases/multiple_tables_realhit_xlsx/labor-table17.xlsx",
+    "Tags": ["multiple"],
+    "QA": [
+      "How many “all shifts” percentages across the week for GV12 exceeded the “Target” percentage of 61.30%?",
+      "2"
+    ],
+    "Source": "RealHiTBench",
+    "ID": "848",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/multi-table cases/multiple_tables_realhit_xlsx/labor-table17.xlsx",
+    "Tags": ["multiple"],
+    "QA": [
+      "What is the average percentage for all shifts of GV12 across the week, and what is the standard deviation?",
+      "56.33, 16.68"
+    ],
+    "Source": "RealHiTBench",
+    "ID": "849",
+    "Type": "QA"
+  },
+    {
+    "File": "sheetbench/multi-table cases/hard_xlsx/mmqa1069.xlsx",
+    "Tags": ["large table, multitable"],
+    "QA": [
+      "How many distinct colleges are associated with players from the team with name 'Miami Fusion'?",
+      "2"
+    ],
+    "Source": "MMQA",
+    "ID": "5",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/multi-table cases/hard_xlsx/mmqa1069.xlsx",
+    "Tags": ["multitable"],
+    "QA": [
+      "Who plays for team Columbus Crew?",
+      "Steve Ralston"
+    ],
+    "Source": "MMQA",
+    "ID": "6",
+    "Type": "QA"
+  },
+  {
+    "File": "sheetbench/multi-table cases/hard_xlsx/mmqa0021.xlsx",
+    "Tags": ["multitable"],
+    "QA": [
+        "Find the average age of the students who have allergies with food and animal types. Round to two decimal places.",
+        "18.33"
+    ],
+    "Source": "MMQA",
+    "ID": "12",
+    "Type": "QA"
+  }
+]
