@@ -237,9 +237,28 @@ logging.basicConfig(level=logging.DEBUG)
 # Enable verbose output
 result = agent.run(user_question, verbose=True)
 ```
-## Citation
-If you find our work helpful, please use the following citations.
 
+## Dataset
+
+Our dataset is publicly available on Hugging Face: https://huggingface.co/datasets/neuromaner/sheetbench
+
+
+## Citation
+
+Our paper is available on arXiv: https://arxiv.org/abs/2510.19247
+
+If you find our work helpful, please cite:
+
+```bibtex
+@article{wang2025sheetbrain,
+  title   = {SheetBrain: A Neuro-Symbolic Agent for Accurate Reasoning over Complex and Large Spreadsheets},
+  author  = {Wang, Ziwei and Su, Jiayuan and Zhou, Mengyu and Zeng, Huaxing and Jia, Mengni and Lv, Xiao and Dong, Haoyu and Ma, Xiaojun and Han, Shi and Zhang, Dongmei},
+  journal = {arXiv preprint arXiv:2510.19247},
+  year    = {2025},
+  doi     = {10.48550/arXiv.2510.19247},
+  url     = {https://arxiv.org/abs/2510.19247}
+}
+```
 
 ## Contributing
 
