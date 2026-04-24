@@ -2,6 +2,8 @@
 ![Architecture Diagram](misc/diagram.png)
 **SheetBrain** is an intelligent Excel analysis and automation toolkit powered by LLM agent. It provides a three-stage architecture (Understand-Execute-Validate) for comprehensive Excel data analysis with iterative improvement capabilities. This repository provides the implementation of the methods described in our paper.
 
+🎉 **Accepted by AAAI 2026 as an Oral Presentation**
+
 ## Features
 
 - 🔍 **Understanding Module**: Analyzes Excel structure and context using multimodal LLM
