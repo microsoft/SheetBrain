@@ -5,6 +5,7 @@
 
 import os
 import time
+import zipfile
 from typing import Dict, Any, Optional
 
 from PIL import Image
@@ -21,12 +22,45 @@ from utils.logger import setup_logger
 
 logger = setup_logger(__name__)
 
+MAX_PREVIEW_CELLS = 50000
+MAX_PREVIEW_ROWS = 1000
+MAX_PREVIEW_COLUMNS = 100
+MAX_PREVIEW_VALUE_LENGTH = 1000
+MAX_WORKBOOK_FILE_SIZE = 100 * 1024 * 1024
+MAX_WORKBOOK_UNCOMPRESSED_SIZE = 500 * 1024 * 1024
+MAX_WORKBOOK_ARCHIVE_MEMBERS = 10000
+MAX_WORKBOOK_COMPRESSION_RATIO = 100
+
 
 class SheetBrain:
     """
     Excel analysis agent with three-stage architecture: Understand-Execute-Validate.
     Supports iterative improvement through validation feedback.
     """
+
+    @staticmethod
+    def _public_execution_result(execution_result: Dict[str, Any]) -> Dict[str, Any]:
+        """Remove generated code, tool output, and prompts from default diagnostics."""
+        summary = execution_result.get('execution_summary', {})
+        public_summary = {
+            key: value for key, value in summary.items()
+            if key not in {'execution_steps', 'final_answer'}
+        }
+        return {
+            'success': execution_result.get('success', False),
+            'answer': execution_result.get('answer', ''),
+            'total_turns': execution_result.get('total_turns', 0),
+            'execution_summary': public_summary,
+        }
+
+    @staticmethod
+    def _public_validation_result(validation_result: Dict[str, Any]) -> Dict[str, Any]:
+        """Return validation status without model-generated diagnostic text."""
+        return {
+            'validation_passed': validation_result.get('validation_passed', False),
+            'confidence_score': validation_result.get('confidence_score', 0.0),
+            'requires_reexecution': validation_result.get('requires_reexecution', False),
+        }
 
     def __init__(self, excel_path: str, config: Optional[Config] = None,
                  total_token_budget: int = 10000,
@@ -51,37 +85,33 @@ class SheetBrain:
         # Initialize OpenAI client
         self.client = OpenAI(
             api_key=self.config.api_key,
-            base_url=self.config.base_url
+            base_url=self.config.base_url,
+            timeout=self.config.timeout,
         )
 
-        # Initialize code execution environment
-        self.code_globals = {
-            'math': __import__('math'),
-            'json': __import__('json'),
-            're': __import__('re'),
-            'os': __import__('os'),
-            'sys': __import__('sys'),
-            'excel_path': excel_path,
-        }
+        # Only reviewed helper functions are exposed to generated code.
+        self.code_globals = {}
         self.code_locals = {}
 
         # Setup Excel environment
         if self.load_excel:
             self._setup_excel_libraries()
-            self.workbook = self.code_globals['workbook']
 
-            # Generate Excel context
-            if excel_context_understanding is None:
-                self.excel_context_understanding = self._generate_sheets_markdown_summary(total_token_budget * 2)
-            else:
-                self.excel_context_understanding = excel_context_understanding
+            try:
+                if excel_context_understanding is None:
+                    self.excel_context_understanding = self._generate_sheets_markdown_summary(total_token_budget * 2)
+                else:
+                    self.excel_context_understanding = excel_context_understanding
 
-            if excel_context_execution is None:
-                self.excel_context_execution = self._generate_sheets_markdown_summary(total_token_budget)
-            else:
-                self.excel_context_execution = excel_context_execution
+                if excel_context_execution is None:
+                    self.excel_context_execution = self._generate_sheets_markdown_summary(total_token_budget)
+                else:
+                    self.excel_context_execution = excel_context_execution
+            finally:
+                self.preview_workbook.close()
         else:
             self.workbook = None
+            self.preview_workbook = None
             self.excel_context_understanding = excel_context_understanding or "Excel file not loaded. Working with provided context only."
             self.excel_context_execution = excel_context_execution or "Excel file not loaded. Working with provided context only."
 
@@ -137,7 +167,7 @@ class SheetBrain:
                 understanding_duration = time.time() - understanding_start_time
 
                 print(f"✅ [STAGE 1] Understanding completed in {understanding_duration:.2f}s")
-                print(f"📝 [STAGE 1] Analysis preview: {understanding_output}...")
+                print("📝 [STAGE 1] Analysis completed")
             else:
                 logger.info("Understanding module disabled")
                 print("⏭️ [STAGE 1] UNDERSTANDING MODULE SKIPPED")
@@ -244,15 +274,32 @@ Please address these specific points in your new analysis approach."""
                 issues_found = []
                 improvement_feedback = ''
 
-            # Collect all conversation histories from execution results
+            # Detailed prompts and workbook-derived context are opt-in diagnostics.
             all_conversation_histories = []
-            for exec_result in all_execution_results:
-                conv_history = exec_result.get('conversation_history', [])
-                if conv_history:
-                    all_conversation_histories.append({
-                        'iteration': all_execution_results.index(exec_result) + 1,
-                        'conversation_history': conv_history
-                    })
+            if self.config.include_diagnostics:
+                for iteration_index, exec_result in enumerate(all_execution_results, 1):
+                    conv_history = exec_result.get('conversation_history', [])
+                    if conv_history:
+                        all_conversation_histories.append({
+                            'iteration': iteration_index,
+                            'conversation_history': conv_history
+                        })
+
+            public_execution_results = all_execution_results
+            public_validation_results = all_validation_results
+            public_issues_found = issues_found
+            public_improvement_feedback = improvement_feedback
+            if not self.config.include_diagnostics:
+                public_execution_results = [
+                    self._public_execution_result(exec_result)
+                    for exec_result in all_execution_results
+                ]
+                public_validation_results = [
+                    self._public_validation_result(validation_result)
+                    for validation_result in all_validation_results
+                ]
+                public_issues_found = []
+                public_improvement_feedback = ''
 
             # ===== FINAL SUMMARY =====
             total_duration = time.time() - overall_start_time
@@ -276,14 +323,14 @@ Please address these specific points in your new analysis approach."""
                 "confidence_score": confidence_score,
                 "validation_passed": validation_passed,
                 "total_iterations": total_iterations,
-                "all_execution_results": all_execution_results,
-                "all_validation_results": all_validation_results,
+                "all_execution_results": public_execution_results,
+                "all_validation_results": public_validation_results,
                 "conversation_history": all_conversation_histories,
-                "issues_found": issues_found,
-                "improvement_feedback": improvement_feedback,
+                "issues_found": public_issues_found,
+                "improvement_feedback": public_improvement_feedback,
                 "total_duration": total_duration,
-                "user_question": user_question,
-                "understanding_output": understanding_output
+                "user_question": user_question if self.config.include_diagnostics else "",
+                "understanding_output": understanding_output if self.config.include_diagnostics else ""
             }
 
         except Exception as e:
@@ -292,15 +339,28 @@ Please address these specific points in your new analysis approach."""
             print(f"❌ [SheetBrain] Critical error: {str(e)}")
             print(f"⏱️ [SheetBrain] Failed after {error_duration:.2f}s")
 
-            # Collect conversation histories even in error case
+            # Collect conversation histories even in error case when explicitly requested.
             all_conversation_histories = []
-            for exec_result in all_execution_results:
-                conv_history = exec_result.get('conversation_history', [])
-                if conv_history:
-                    all_conversation_histories.append({
-                        'iteration': all_execution_results.index(exec_result) + 1,
-                        'conversation_history': conv_history
-                    })
+            if self.config.include_diagnostics:
+                for iteration_index, exec_result in enumerate(all_execution_results, 1):
+                    conv_history = exec_result.get('conversation_history', [])
+                    if conv_history:
+                        all_conversation_histories.append({
+                            'iteration': iteration_index,
+                            'conversation_history': conv_history
+                        })
+
+            public_execution_results = all_execution_results
+            public_validation_results = all_validation_results
+            if not self.config.include_diagnostics:
+                public_execution_results = [
+                    self._public_execution_result(exec_result)
+                    for exec_result in all_execution_results
+                ]
+                public_validation_results = [
+                    self._public_validation_result(validation_result)
+                    for validation_result in all_validation_results
+                ]
 
             return {
                 "success": False,
@@ -308,19 +368,19 @@ Please address these specific points in your new analysis approach."""
                 "confidence_score": 0.0,
                 "validation_passed": False,
                 "total_iterations": len(all_execution_results),
-                "all_execution_results": all_execution_results,
-                "all_validation_results": all_validation_results,
+                "all_execution_results": public_execution_results,
+                "all_validation_results": public_validation_results,
                 "conversation_history": all_conversation_histories,
                 "issues_found": [f"Critical error: {str(e)}"],
                 "improvement_feedback": "Review the error and try again",
                 "total_duration": error_duration,
-                "user_question": user_question
+                "user_question": user_question if self.config.include_diagnostics else ""
             }
 
     def _generate_sheets_markdown_summary(self, total_token_budget: int = 50000) -> str:
         """Generate a markdown summary of all sheets in the workbook."""
         try:
-            workbook = self.workbook
+            workbook = self.preview_workbook
             overview_parts = []
 
             overview_parts.append(f"📊 **Excel File Overview: {os.path.basename(self.excel_path)}**\n")
@@ -331,6 +391,7 @@ Please address these specific points in your new analysis approach."""
 
             # Distribute tokens among sheets
             tokens_per_sheet = available_tokens // len(workbook.sheetnames) if workbook.sheetnames else 0
+            remaining_preview_cells = MAX_PREVIEW_CELLS
 
             for sheet_name in workbook.sheetnames:
                 sheet = workbook[sheet_name]
@@ -339,14 +400,16 @@ Please address these specific points in your new analysis approach."""
                 sheet_parts.append(f"\n**📄 Sheet: '{sheet_name}'**")
                 sheet_parts.append(f"- Dimensions: {sheet.max_row} rows × {sheet.max_column} columns")
 
-                if tokens_per_sheet > 0:
+                if tokens_per_sheet > 0 and remaining_preview_cells > 0:
                     # Get comprehensive preview with token limit
                     preview_result = self._get_sheet_preview_with_token_limit(
                         sheet,
                         tokens_per_sheet,
-                        max_rows=min(sheet.max_row, 10000),  # Cap at 10000 rows for performance
-                        max_cols=min(sheet.max_column, 1000)   # Cap at 1000 columns
+                        max_rows=min(sheet.max_row, MAX_PREVIEW_ROWS),
+                        max_cols=min(sheet.max_column, MAX_PREVIEW_COLUMNS),
+                        max_cells=remaining_preview_cells,
                     )
+                    remaining_preview_cells -= preview_result['cells_scanned']
 
                     sheet_parts.append(f"- Data Preview ({preview_result['rows_shown']} of {sheet.max_row} rows, "
                                     f"{preview_result['cols_shown']} of {sheet.max_column} columns):")
@@ -381,7 +444,9 @@ Please address these specific points in your new analysis approach."""
             return f"❌ Error generating Excel overview: {str(e)}"
 
     def _get_sheet_preview_with_token_limit(self, sheet, token_budget: int,
-                                          max_rows: int = 10000, max_cols: int = 1000) -> Dict[str, Any]:
+                                          max_rows: int = MAX_PREVIEW_ROWS,
+                                          max_cols: int = MAX_PREVIEW_COLUMNS,
+                                          max_cells: int = MAX_PREVIEW_CELLS) -> Dict[str, Any]:
         """Get a preview of sheet data that fits within a token budget."""
         preview_data = []
         formatted_data = []
@@ -391,8 +456,8 @@ Please address these specific points in your new analysis approach."""
         start_row = 1
 
         # Calculate effective limits
-        max_data_rows = min(max_rows, sheet.max_row)
-        max_data_cols = min(max_cols, sheet.max_column)
+        max_data_cols = min(max_cols, sheet.max_column, max_cells)
+        max_data_rows = min(max_rows, sheet.max_row, max_cells // max(max_data_cols, 1))
 
         # Iterate through rows and accumulate data within token budget
         for row_idx in range(start_row, max_data_rows + 1):
@@ -407,6 +472,7 @@ Please address these specific points in your new analysis approach."""
 
                 # Format cell value for display
                 display_value = str(cell_value) if cell_value is not None else ""
+                display_value = display_value[:MAX_PREVIEW_VALUE_LENGTH]
 
                 # Escape markdown special characters
                 display_value = display_value.replace("|", "\\|").replace("\n", " ").replace("\r", " ")
@@ -443,39 +509,33 @@ Please address these specific points in your new analysis approach."""
             'cols_shown': max_data_cols,
             'start_row': start_row,
             'is_truncated': rows_shown < max_data_rows,
-            'tokens_used': tokens_used
+            'tokens_used': tokens_used,
+            'cells_scanned': rows_shown * max_data_cols,
         }
 
     def _setup_excel_libraries(self):
         """Setup Excel-related libraries and utilities."""
         try:
-            import openpyxl
-            from openpyxl.utils import range_boundaries, get_column_letter, column_index_from_string
-            import pandas as pd
-            import numpy as np
-            import matplotlib
-            matplotlib.use('Agg')
-
-            logger.info(f"Loading Excel file: {self.excel_path}")
+            self._validate_workbook_archive(self.excel_path)
+            logger.info("Loading Excel file")
             start_time = time.time()
-            workbook = load_workbook(self.excel_path, data_only=True)
+            self.preview_workbook = load_workbook(
+                self.excel_path,
+                data_only=True,
+                read_only=True,
+                keep_links=False,
+                keep_vba=False,
+            )
+            workbook = load_workbook(
+                self.excel_path,
+                data_only=False,
+                keep_links=False,
+                keep_vba=False,
+            )
+            self.workbook = workbook
             load_time = time.time() - start_time
             logger.info(f"Excel file loaded in {load_time:.2f}s")
             print(f"📊 [Excel] Loaded in {load_time:.2f}s")
-
-            # Add libraries to code environment
-            self.code_globals.update({
-                'openpyxl': openpyxl,
-                'workbook': workbook,
-                'sheet_names': workbook.sheetnames,
-                'range_boundaries': range_boundaries,
-                'get_column_letter': get_column_letter,
-                'column_index_from_string': column_index_from_string,
-                'pandas': pd,
-                'pd': pd,
-                'numpy': np,
-                'np': np,
-            })
 
             # Create ExcelToolkit instance and add helper functions
             self.mcp_toolkit = ExcelToolkit(workbook, self.excel_path)
@@ -483,9 +543,9 @@ Please address these specific points in your new analysis approach."""
             self.code_globals.update(excel_helpers)
 
             logger.info("Excel libraries loaded successfully")
-            logger.info(f"Available sheets: {workbook.sheetnames}")
+            logger.info("Workbook contains %d sheets", len(workbook.sheetnames))
             print("📦 [SheetBrain] Excel libraries loaded successfully")
-            print(f"📊 [SheetBrain] Available sheets: {workbook.sheetnames}")
+            print(f"📊 [SheetBrain] Workbook contains {len(workbook.sheetnames)} sheets")
 
         except ImportError as e:
             logger.error(f"Failed to import required libraries: {e}")
@@ -495,3 +555,27 @@ Please address these specific points in your new analysis approach."""
             logger.error(f"Failed to load Excel file: {e}")
             print(f"❌ [SheetBrain] Failed to load Excel file: {e}")
             raise
+
+    @staticmethod
+    def _validate_workbook_archive(excel_path: str) -> None:
+        """Reject oversized or suspicious Office archives before XML parsing."""
+        if os.path.getsize(excel_path) > MAX_WORKBOOK_FILE_SIZE:
+            raise ValueError("Workbook exceeds the compressed file-size limit")
+        if not zipfile.is_zipfile(excel_path):
+            raise ValueError("Workbook is not a valid Office ZIP archive")
+
+        total_uncompressed = 0
+        with zipfile.ZipFile(excel_path) as archive:
+            members = archive.infolist()
+            if len(members) > MAX_WORKBOOK_ARCHIVE_MEMBERS:
+                raise ValueError("Workbook contains too many archive members")
+            for member in members:
+                total_uncompressed += member.file_size
+                if total_uncompressed > MAX_WORKBOOK_UNCOMPRESSED_SIZE:
+                    raise ValueError("Workbook exceeds the uncompressed size limit")
+                if member.flag_bits & 0x1:
+                    raise ValueError("Encrypted workbook archive members are not allowed")
+                if member.file_size > 0:
+                    ratio = member.file_size / max(member.compress_size, 1)
+                    if ratio > MAX_WORKBOOK_COMPRESSION_RATIO:
+                        raise ValueError("Workbook archive has a suspicious compression ratio")

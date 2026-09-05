@@ -250,12 +250,6 @@ Please be thorough and objective in your assessment. If issues are found, focus 
                     messages=messages,
                 )
 
-                print("="*50)
-                print("VALIDATION MODULE LLM RESPONSE CONTENT:")
-                print("="*50)
-                print(response.choices[0].message.content)
-                print("="*50)
-
                 return response.choices[0].message.content
 
             except Exception as e:

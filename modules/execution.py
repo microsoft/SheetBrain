@@ -1,21 +1,54 @@
 # Copyright (c) Microsoft Corporation.
 # Licensed under the MIT License.
 
-"""Execution module for multi-turn reasoning and code execution."""
+"""Execution module for multi-turn reasoning and constrained code interpretation."""
 
-import io
 import re
-import sys
 import time
-import random
-import traceback
 from typing import Dict, Any, Optional, Tuple
 
 from openai import RateLimitError
+from openai.types.chat import ChatCompletionMessage
 
+from modules.response_parser import parse_model_response
+from modules.safe_execution import SafeInterpreter
 from utils.logger import setup_logger
 
 logger = setup_logger(__name__)
+
+ALLOWED_EXCEL_HELPERS = {
+    "inspector",
+    "inspector_attribute",
+    "search",
+    "save_workbook",
+    "insert_rows",
+    "insert_columns",
+    "delete_rows",
+    "delete_columns",
+    "set_cell_value",
+    "set_range_values",
+    "copy_range",
+    "apply_formatting",
+    "create_chart",
+    "add_formula",
+}
+
+HELPER_CALL_LIMITS = {
+    "inspector": 20,
+    "inspector_attribute": 20,
+    "search": 5,
+    "save_workbook": 1,
+    "insert_rows": 20,
+    "insert_columns": 20,
+    "delete_rows": 20,
+    "delete_columns": 20,
+    "set_cell_value": 100,
+    "set_range_values": 20,
+    "copy_range": 20,
+    "apply_formatting": 20,
+    "create_chart": 20,
+    "add_formula": 100,
+}
 
 
 class ExecutionModule:
@@ -41,25 +74,31 @@ class ExecutionModule:
         self.code_globals = code_globals
         self.code_locals = code_locals
         self.excel_context_execution = excel_context_execution
-        self.conversation_history = []
+        self.conversation_history: list[Any] = []
+        approved_helpers = {
+            name: value for name, value in code_globals.items()
+            if name in ALLOWED_EXCEL_HELPERS and callable(value)
+        }
+        self.interpreter = SafeInterpreter(
+            approved_helpers,
+            function_call_limits=HELPER_CALL_LIMITS,
+        )
 
     def _get_system_prompt(self) -> dict:
         """Create the system prompt for the conversation."""
 
-        system_content = """You are an expert Excel data analyst with access to a comprehensive Python environment for Excel analysis.
+        system_content = """You are an expert Excel data analyst with access to a constrained language for Excel analysis.
 
 **CODE EXECUTION ENVIRONMENT:**
-You have access to a Python environment with the following pre-loaded:
-- openpyxl library for Excel operations
-- Pandas for data operations
-- Helper functions for common Excel operations
-- The workbook is already loaded as 'workbook' variable
+    Code is interpreted by a deny-by-default engine. It supports literals, arithmetic, comparisons,
+    variables, if statements, bounded for loops, indexing, and calls to the named functions below.
+    Imports, attribute access, function/class definitions, comprehensions, while loops, file/network/process
+    access, and calls to any unlisted function are rejected. Use lists and dictionaries for analysis.
+
+    Available pure functions: `abs`, `all`, `any`, `bool`, `dict`, `enumerate`, `float`, `int`, `len`,
+    `list`, `max`, `min`, `print`, `range`, `round`, `set`, `sorted`, `str`, `sum`, `tuple`, `zip`.
 
 Available Excel Helper Functions:
-- `get_sheet(sheet_name=None)`: Get worksheet by name or active sheet
-  - **Usage:** `sheet = get_sheet("Sheet1")` or `sheet = get_sheet()` for active sheet
-  - **Output:** Returns openpyxl worksheet object for further operations
-
 - `inspector(range_ref, sheet_name=None)`: Read cell values from specified range
   - **Usage:** `data = inspector("A1:C3", "Sheet1")` or `value = inspector("B5")`
   - **Output:** List of lists format: `[['A1', 'B1', 'C1'], ['A2', 'B2', 'C2']]` or `[['single_value']]`
@@ -87,11 +126,6 @@ Available Excel Helper Functions:
     - `border`: Border style ('thin', 'medium', 'thick')
     - `alignment`: Text alignment ('left', 'center', 'right')
   - **Output:** String message confirming formatting applied to specified range
-
-- `save_plot_to_excel(sheet_name, cell_position='A1', figsize=(10,6), dpi=100)`: Save current matplotlib plot to Excel sheet
-  - **Usage:** `result = save_plot_to_excel("Charts", "D5", figsize=(8,6))`
-  - **Prerequisites:** Create matplotlib plot first with `plt.plot()` or similar
-  - **Output:** String message: `"Chart saved to Charts!D5"` or `"No plot to save"`
 
 - `save_workbook()`: Save workbook to file with '_output' postfix
   - **Usage:** `filename = save_workbook()`
@@ -199,7 +233,8 @@ Please start by exploring the data structure and then work toward answering the 
         Returns:
             Dictionary containing execution results and conversation history
         """
-        logger.info(f"Starting multi-turn analysis for: '{user_question}'")
+        logger.info("Starting multi-turn analysis")
+        self.interpreter.reset_session()
 
         # Initialize conversation with system prompt and initial user prompt
         self.conversation_history = [self._get_system_prompt()]
@@ -216,6 +251,8 @@ Please start by exploring the data structure and then work toward answering the 
                 self.conversation_history.append(response_message)
 
                 # Parse response for code action or final answer
+                if not isinstance(response_message.content, str):
+                    raise ValueError("LLM response did not contain text")
                 thought, code_action = self._parse_llm_response(response_message.content)
 
                 if code_action is None:
@@ -228,7 +265,7 @@ Please start by exploring the data structure and then work toward answering the 
                         else:
                             final_answer = thought.replace("Final Answer:", "").strip()
 
-                        logger.info(f"Final answer found: {final_answer}")
+                        logger.info("Final answer found")
 
                         return {
                             "success": True,
@@ -254,12 +291,12 @@ Please start by exploring the data structure and then work toward answering the 
                         continue
 
                 # Execute code action
-                logger.info(f"Executing Python code:\n{code_action}")
+                logger.info("Interpreting model-generated spreadsheet operation")
 
                 try:
                     execution_result = self._execute_code(code_action)
                     observation = f"Code execution result:\n{execution_result}"
-                    logger.info(f"Execution result:\n{execution_result}")
+                    logger.info("Spreadsheet operation completed")
 
                     # Track this execution step
                     execution_steps.append({
@@ -272,8 +309,8 @@ Please start by exploring the data structure and then work toward answering the 
                     self.conversation_history.append({"role": "user", "content": observation})
 
                 except Exception as e:
-                    error_message = f"Code execution error: {str(e)}"
-                    logger.error(f"Execution error: {error_message}")
+                    error_message = f"Code execution error: {type(e).__name__}"
+                    logger.error("Model-generated spreadsheet operation failed: %s", type(e).__name__)
 
                     # Track this failed execution step
                     execution_steps.append({
@@ -306,73 +343,11 @@ Please start by exploring the data structure and then work toward answering the 
         }
 
     def _execute_code(self, code: str) -> str:
-        """Execute Python code in the Excel environment."""
-        old_stdout = sys.stdout
-        old_stderr = sys.stderr
+        """Interpret generated code using only approved spreadsheet operations."""
+        return self.interpreter.execute(code)
 
-        stdout_capture = io.StringIO()
-        stderr_capture = io.StringIO()
-
-        result = ""
-
-        try:
-            sys.stdout = stdout_capture
-            sys.stderr = stderr_capture
-
-            # Merge locals into globals for better variable access in nested scopes
-            combined_namespace = {**self.code_globals, **self.code_locals}
-
-            # Execute the code with combined namespace
-            exec(code, combined_namespace)
-
-            # Update both globals and locals with any new variables
-            self.code_globals.update({k: v for k, v in combined_namespace.items()
-                                    if k not in self.code_globals or k in self.code_locals})
-            self.code_locals.update(combined_namespace)
-
-            stdout_output = stdout_capture.getvalue()
-            stderr_output = stderr_capture.getvalue()
-
-            if stdout_output:
-                result += f"Output:\n{stdout_output}\n"
-
-            if stderr_output:
-                result += f"Errors/Warnings:\n{stderr_output}\n"
-
-            # Check for result variable
-            if 'result' in combined_namespace:
-                result += f"Result variable: {combined_namespace['result']}\n"
-
-            # Try to evaluate last expression if no output
-            if not result.strip():
-                lines = code.strip().split('\n')
-                if lines:
-                    last_line = lines[-1].strip()
-                    if last_line and not any(last_line.startswith(kw) for kw in
-                                           ['import ', 'from ', 'def ', 'class ', 'if ', 'for ', 'while ', 'try ', 'with ', 'print(']):
-                        try:
-                            last_result = eval(last_line, combined_namespace)
-                            if last_result is not None:
-                                result = f"Expression result: {last_result}"
-                        except:
-                            pass
-
-            if not result.strip():
-                result = "Code executed successfully (no output)"
-
-        except Exception as e:
-            result = f"Execution error: {str(e)}\nTraceback:\n{traceback.format_exc()}"
-
-        finally:
-            sys.stdout = old_stdout
-            sys.stderr = old_stderr
-
-        if len(result) <= 10000:
-            return result
-        else:
-            return result[:10000] + "\n⚠️ **[OUTPUT TRUNCATED]** ⚠️\n"
-
-    def _get_llm_response(self, max_retries: int = 5, base_delay: float = 1.0):
+    def _get_llm_response(self, max_retries: int = 5,
+                          base_delay: float = 1.0) -> ChatCompletionMessage:
         """Get response from OpenAI with retry logic."""
         last_exception = None
 
@@ -387,11 +362,6 @@ Please start by exploring the data structure and then work toward answering the 
                 choice = response.choices[0]
                 message = choice.message
 
-                print("="*50)
-                print("EXECUTION MODULE LLM RESPONSE:")
-                print("="*50)
-                print(message.content)
-                print("="*50)
                 return message
 
             except RateLimitError as e:
@@ -403,7 +373,7 @@ Please start by exploring the data structure and then work toward answering the 
 
                 if attempt < max_retries - 1:
                     if wait_time:
-                        delay = wait_time + random.uniform(1, 3)
+                        delay = wait_time + 2
                         logger.info(f"Waiting {delay:.1f} seconds as suggested by API")
                     else:
                         delay = 10
@@ -419,7 +389,7 @@ Please start by exploring the data structure and then work toward answering the 
                 logger.error(f"API error, attempt {attempt + 1}/{max_retries}: {str(e)}")
 
                 if attempt < max_retries - 1:
-                    delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                    delay = base_delay * (2 ** attempt) + 0.5
                     logger.info(f"Waiting {delay:.1f} seconds before retry")
                     time.sleep(delay)
                 else:
@@ -428,22 +398,11 @@ Please start by exploring the data structure and then work toward answering the 
 
         if last_exception:
             raise last_exception
+        raise RuntimeError("No LLM response received")
 
     def _parse_llm_response(self, content: str) -> Tuple[Optional[str], Optional[str]]:
         """Parse LLM response for Final Answer or Code Action"""
-
-        # Check for Final Answer (with or without Thought prefix)
-        if "Final Answer:" in content:
-            return content.strip(), None
-
-        # Check for Code Action
-        code_match = re.search(r"```python\s*(.*?)\s*```", content, re.DOTALL)
-        if code_match:
-            code = code_match.group(1).strip()
-            return None, code
-
-        # No valid format found
-        return content.strip(), None
+        return parse_model_response(content)
 
     def _extract_wait_time_from_error(self, error_message: str) -> Optional[int]:
         """Extract wait time from rate limit error message."""
