@@ -7,7 +7,6 @@ import base64
 import io
 import re
 import time
-import random
 from typing import Dict, Any, Optional
 
 from PIL import Image
@@ -134,7 +133,7 @@ Provide a comprehensive overview including:
 
                 if attempt < max_retries - 1:
                     if wait_time:
-                        delay = wait_time + random.uniform(1, 3)
+                        delay = wait_time + 2
                         logger.info(f"Waiting {delay:.1f} seconds as suggested by API")
                     else:
                         delay = 10
@@ -150,7 +149,7 @@ Provide a comprehensive overview including:
                 logger.error(f"API error, attempt {attempt + 1}/{max_retries}: {str(e)}")
 
                 if attempt < max_retries - 1:
-                    delay = base_delay * (2 ** attempt) + random.uniform(0, 1)
+                    delay = base_delay * (2 ** attempt) + 0.5
                     logger.info(f"Waiting {delay:.1f} seconds before retry")
                     time.sleep(delay)
                 else:

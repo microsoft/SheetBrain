@@ -21,7 +21,6 @@ def main():
     parser.add_argument("--no-validation", action="store_true", help="Disable validation stage")
     parser.add_argument("--no-understanding", action="store_true", help="Disable understanding stage")
     parser.add_argument("--token-budget", type=int, default=10000, help="Token budget for context generation (default: 10000)")
-    parser.add_argument("--api-key", help="OpenAI API key (overrides config)")
     parser.add_argument("--base-url", help="OpenAI base URL (overrides config)")
     parser.add_argument("--deployment", help="Model deployment name (overrides config)")
     parser.add_argument("--verbose", "-v", action="store_true", help="Enable verbose logging")
@@ -33,12 +32,11 @@ def main():
         config = Config.from_env()
 
         # Override with command line arguments if provided
-        if args.api_key:
-            config.api_key = args.api_key
         if args.base_url:
             config.base_url = args.base_url
         if args.deployment:
             config.deployment = args.deployment
+        config.include_diagnostics = args.verbose
 
         # Initialize SheetBrain
         agent = SheetBrain(

@@ -26,6 +26,30 @@
    Structure & Context    Execution & Logic      & Feedback Loop
 ```
 
+### Code execution security
+
+Workbook contents and user questions are untrusted input. SheetBrain does not pass model-generated
+code to Python's `exec` or `eval`. The execution module parses the code and interprets a restricted,
+deny-by-default language that supports basic expressions, variables, conditionals, bounded `for`
+loops, and an explicit allowlist of Excel helper functions.
+
+Imports, attribute access, function and class definitions, arbitrary callable dispatch, filesystem
+and network APIs, subprocesses, and unbounded loops are rejected. Generated code is also limited by
+source size, AST node count, loop iterations, intermediate value size, and captured output size. This intentionally means that
+general Python, direct `pandas`/`openpyxl` object access, and third-party library calls are unavailable
+to model-generated code. Add new capabilities as narrow helper functions and explicitly allowlist
+them in `modules/execution.py`; do not expose modules or general-purpose runtime objects.
+
+Detailed prompts, generated code, tool output, and workbook-derived context are omitted from returned
+diagnostics by default. Use `--verbose` or `INCLUDE_DIAGNOSTICS=true` only in trusted environments.
+Provide API credentials through `OPENAI_API_KEY`; command-line secrets can be exposed in process lists.
+
+Model responses must match one exact action format, and privileged helper calls are rate-limited per
+turn. Workbook archives, previews, ranges, mutations, intermediate values, loops, and output all have
+resource ceilings. Generic cell writes escape formula-like text; explicit formulas reject external,
+network, and link capabilities. Saved workbooks use unique output names instead of overwriting a
+predictable path.
+
 ## Installation
 
 ### Prerequisites

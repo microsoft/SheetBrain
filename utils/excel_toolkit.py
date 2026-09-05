@@ -10,7 +10,7 @@ import io
 from typing import List, Optional, Dict, Union, Any
 
 import matplotlib.pyplot as plt
-from openpyxl.utils import get_column_letter, column_index_from_string
+from openpyxl.utils import get_column_letter, column_index_from_string, range_boundaries
 from openpyxl.utils.cell import coordinate_to_tuple
 from openpyxl.styles import PatternFill, Font, Border, Side, Alignment
 from openpyxl.chart import BarChart, LineChart, PieChart, ScatterChart, AreaChart
@@ -18,6 +18,14 @@ from openpyxl.chart.reference import Reference
 from openpyxl.drawing.image import Image
 from PIL import Image as PILImage
 import tiktoken
+
+from utils.excel_security import sanitize_cell_value, validate_formula
+
+
+MAX_RANGE_CELLS = 100000
+MAX_MUTATION_COUNT = 10000
+MAX_WORKSHEET_ROWS = 1048576
+MAX_WORKSHEET_COLUMNS = 16384
 
 def calculate_token_cost_line(text: str, model: str = "gpt-4") -> int:
     """
@@ -71,6 +79,27 @@ class ExcelToolkit:
         self.excel_path = excel_path
         self._temp_files = []
 
+    @staticmethod
+    def _validate_range_size(range_ref: str) -> None:
+        """Reject malformed or excessively large worksheet ranges."""
+        try:
+            min_col, min_row, max_col, max_row = range_boundaries(range_ref)
+        except (TypeError, ValueError) as error:
+            raise ValueError(f"Invalid cell range: {range_ref}") from error
+        if None in (min_col, min_row, max_col, max_row):
+            raise ValueError("Whole-row and whole-column ranges are not allowed")
+        if (min_row < 1 or min_col < 1 or max_row > MAX_WORKSHEET_ROWS
+                or max_col > MAX_WORKSHEET_COLUMNS):
+            raise ValueError("Range is outside Excel worksheet boundaries")
+        cell_count = (max_col - min_col + 1) * (max_row - min_row + 1)
+        if cell_count > MAX_RANGE_CELLS:
+            raise ValueError(f"Range exceeds the {MAX_RANGE_CELLS}-cell limit")
+
+    @staticmethod
+    def _validate_mutation_count(count: int) -> None:
+        if count < 1 or count > MAX_MUTATION_COUNT:
+            raise ValueError(f"Count must be between 1 and {MAX_MUTATION_COUNT}")
+
     def get_sheet(self, sheet_name: Optional[str] = None):
         """Get a worksheet by name or return the active sheet."""
         if sheet_name is None:
@@ -83,6 +112,7 @@ class ExcelToolkit:
     def inspector(self, range_ref: str, sheet_name: Optional[str] = None) -> List[List]:
         """Read a range of cells and return as list of lists."""
         sheet = self.get_sheet(sheet_name)
+        self._validate_range_size(range_ref)
         cell_range = sheet[range_ref]
 
         if hasattr(cell_range, 'value'):
@@ -109,6 +139,7 @@ class ExcelToolkit:
 
         try:
             sheet = self.get_sheet(sheet_name)
+            self._validate_range_size(range_ref)
             cell_range = sheet[range_ref]
         except (ValueError, KeyError) as e:
             return {"error": str(e)}
@@ -179,6 +210,9 @@ class ExcelToolkit:
             raise ValueError(f"Invalid search_type '{search_type}'. Valid options: {valid_search_types}")
 
         search_value = str(value) if case_sensitive else str(value).lower()
+
+        if sheet.max_row * sheet.max_column > MAX_RANGE_CELLS:
+            raise ValueError(f"Search range exceeds the {MAX_RANGE_CELLS}-cell limit")
 
         for row in sheet.iter_rows():
             for cell in row:
@@ -268,11 +302,23 @@ class ExcelToolkit:
 
     def save_workbook(self) -> str:
         """Save the workbook to file."""
-        dir_path = os.path.dirname(self.excel_path)
-        base_name = os.path.splitext(os.path.basename(self.excel_path))[0]
-        filename = os.path.join(dir_path, f"{base_name}_output.xlsx")
+        dir_path = os.path.dirname(os.path.abspath(self.excel_path))
+        base_name = os.path.splitext(os.path.basename(self.excel_path))[0][:80]
 
-        self.workbook.save(filename)
+        try:
+            with tempfile.NamedTemporaryFile(
+                mode="w+b",
+                prefix=f"{base_name}_output_",
+                suffix=".xlsx",
+                dir=dir_path,
+                delete=False,
+            ) as output_file:
+                filename = output_file.name
+                self.workbook.save(output_file)
+        except Exception:
+            if 'filename' in locals() and os.path.exists(filename):
+                os.unlink(filename)
+            raise
 
         # Clean up temporary files
         for temp_file in self._temp_files:
@@ -292,8 +338,9 @@ class ExcelToolkit:
         try:
             sheet = self.get_sheet(sheet_name)
 
-            if row_index < 1 or count < 1:
-                raise ValueError("Row index and count must be >= 1")
+            if row_index < 1 or row_index > MAX_WORKSHEET_ROWS:
+                raise ValueError("Row index is outside Excel worksheet boundaries")
+            self._validate_mutation_count(count)
 
             sheet.insert_rows(row_index, count)
 
@@ -314,8 +361,9 @@ class ExcelToolkit:
             if isinstance(col_index, str):
                 col_index = column_index_from_string(col_index)
 
-            if col_index < 1 or count < 1:
-                raise ValueError("Column index and count must be >= 1")
+            if col_index < 1 or col_index > MAX_WORKSHEET_COLUMNS:
+                raise ValueError("Column index is outside Excel worksheet boundaries")
+            self._validate_mutation_count(count)
 
             sheet.insert_cols(col_index, count)
 
@@ -334,8 +382,9 @@ class ExcelToolkit:
         try:
             sheet = self.get_sheet(sheet_name)
 
-            if start_row < 1 or count < 1:
-                raise ValueError("Start row and count must be >= 1")
+            if start_row < 1 or start_row > MAX_WORKSHEET_ROWS:
+                raise ValueError("Start row is outside Excel worksheet boundaries")
+            self._validate_mutation_count(count)
             if start_row > sheet.max_row:
                 raise ValueError(f"Start row {start_row} exceeds sheet max row {sheet.max_row}")
 
@@ -358,8 +407,9 @@ class ExcelToolkit:
             if isinstance(start_col, str):
                 start_col = column_index_from_string(start_col)
 
-            if start_col < 1 or count < 1:
-                raise ValueError("Start column and count must be >= 1")
+            if start_col < 1 or start_col > MAX_WORKSHEET_COLUMNS:
+                raise ValueError("Start column is outside Excel worksheet boundaries")
+            self._validate_mutation_count(count)
             if start_col > sheet.max_column:
                 raise ValueError(f"Start column {start_col} exceeds sheet max column {sheet.max_column}")
 
@@ -382,10 +432,11 @@ class ExcelToolkit:
 
             if not re.match(r'^[A-Z]+[0-9]+$', cell_ref.upper()):
                 raise ValueError(f"Invalid cell reference: {cell_ref}")
+            self._validate_range_size(cell_ref)
 
-            sheet[cell_ref] = value
+            sheet[cell_ref] = sanitize_cell_value(value)
 
-            message = f"✅ Set cell {cell_ref} to '{value}' in sheet '{sheet_name}'"
+            message = f"✅ Set cell {cell_ref} in sheet '{sheet_name}'"
             print(message)
             return message
 
@@ -406,7 +457,16 @@ class ExcelToolkit:
             if not values_2d_array or not isinstance(values_2d_array, list):
                 raise ValueError("values_2d_array must be a non-empty list")
 
+            cell_count = sum(len(row) for row in values_2d_array if isinstance(row, list))
+            if cell_count > MAX_RANGE_CELLS:
+                raise ValueError(f"Values exceed the {MAX_RANGE_CELLS}-cell limit")
+
             start_row, start_col = coordinate_to_tuple(start_cell)
+            rows_count = len(values_2d_array)
+            cols_count = max(len(row) for row in values_2d_array) if values_2d_array else 0
+            if (start_row + rows_count - 1 > MAX_WORKSHEET_ROWS
+                    or start_col + cols_count - 1 > MAX_WORKSHEET_COLUMNS):
+                raise ValueError("Destination range is outside Excel worksheet boundaries")
 
             for row_idx, row_values in enumerate(values_2d_array):
                 if not isinstance(row_values, list):
@@ -415,10 +475,12 @@ class ExcelToolkit:
                 for col_idx, value in enumerate(row_values):
                     current_row = start_row + row_idx
                     current_col = start_col + col_idx
-                    sheet.cell(row=current_row, column=current_col, value=value)
+                    sheet.cell(
+                        row=current_row,
+                        column=current_col,
+                        value=sanitize_cell_value(value),
+                    )
 
-            rows_count = len(values_2d_array)
-            cols_count = max(len(row) for row in values_2d_array) if values_2d_array else 0
             end_cell = sheet.cell(row=start_row + rows_count - 1,
                                 column=start_col + cols_count - 1).coordinate
 
@@ -439,6 +501,8 @@ class ExcelToolkit:
 
             if ':' not in src_range:
                 raise ValueError("Source range must be in format 'A1:B2'")
+            self._validate_range_size(src_range)
+            self._validate_range_size(dest_cell)
 
             source_data = []
             for row in src_ws[src_range]:
@@ -447,15 +511,22 @@ class ExcelToolkit:
 
             if source_data:
                 dest_start_row, dest_start_col = coordinate_to_tuple(dest_cell)
+                rows_count = len(source_data)
+                cols_count = len(source_data[0]) if source_data else 0
+                if (dest_start_row + rows_count - 1 > MAX_WORKSHEET_ROWS
+                        or dest_start_col + cols_count - 1 > MAX_WORKSHEET_COLUMNS):
+                    raise ValueError("Destination range is outside Excel worksheet boundaries")
 
                 for row_idx, row_values in enumerate(source_data):
                     for col_idx, value in enumerate(row_values):
                         dest_row = dest_start_row + row_idx
                         dest_col = dest_start_col + col_idx
-                        dest_ws.cell(row=dest_row, column=dest_col, value=value)
+                        dest_ws.cell(
+                            row=dest_row,
+                            column=dest_col,
+                            value=sanitize_cell_value(value),
+                        )
 
-                rows_count = len(source_data)
-                cols_count = len(source_data[0]) if source_data else 0
                 dest_end_cell = dest_ws.cell(row=dest_start_row + rows_count - 1,
                                            column=dest_start_col + cols_count - 1).coordinate
 
@@ -476,6 +547,7 @@ class ExcelToolkit:
         """Apply formatting to a range of cells."""
         try:
             sheet = self.get_sheet(sheet_name)
+            self._validate_range_size(range_ref)
 
             if ':' in range_ref:
                 cell_range = sheet[range_ref]
@@ -534,6 +606,7 @@ class ExcelToolkit:
         """Create a chart in the Excel sheet."""
         try:
             sheet = self.get_sheet(sheet_name)
+            self._validate_range_size(data_range)
 
             chart_classes = {
                 'bar': BarChart,
@@ -577,13 +650,13 @@ class ExcelToolkit:
 
             if not re.match(r'^[A-Z]+[0-9]+$', cell_ref.upper()):
                 raise ValueError(f"Invalid cell reference: {cell_ref}")
+            self._validate_range_size(cell_ref)
 
-            if not formula.startswith('='):
-                formula = '=' + formula
+            formula = validate_formula(formula)
 
             sheet[cell_ref] = formula
 
-            message = f"✅ Added formula '{formula}' to cell {cell_ref} in sheet '{sheet_name}'"
+            message = f"✅ Added formula to cell {cell_ref} in sheet '{sheet_name}'"
             print(message)
             return message
 

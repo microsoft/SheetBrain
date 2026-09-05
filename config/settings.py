@@ -24,6 +24,7 @@ class Config:
     # Features
     enable_validation: bool = True
     enable_understanding: bool = True
+    include_diagnostics: bool = False
 
     # Timeouts and Retries
     max_retries: int = 3
@@ -40,6 +41,7 @@ class Config:
             total_token_budget=int(os.getenv("TOKEN_BUDGET", cls.total_token_budget)),
             enable_validation=os.getenv("ENABLE_VALIDATION", "true").lower() == "true",
             enable_understanding=os.getenv("ENABLE_UNDERSTANDING", "true").lower() == "true",
+            include_diagnostics=os.getenv("INCLUDE_DIAGNOSTICS", "false").lower() == "true",
             max_retries=int(os.getenv("MAX_RETRIES", cls.max_retries)),
             timeout=int(os.getenv("TIMEOUT", cls.timeout))
         )
